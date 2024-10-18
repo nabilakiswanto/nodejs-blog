@@ -22,7 +22,7 @@ router.get('',async(req,res)=>{
         const nextPage = parseInt(page) + 1;
         const hasNextPage = nextPage <=Math.ceil(count/perPage);
         
-        res.render('index',{locals,data,current: page, nextPage: hasNextPage ? nextPage : null});
+        res.render('index',{locals,data,currentRoute:'/',current: page, nextPage: hasNextPage ? nextPage : null});
     }catch(error){
         console.log(error);
     }
@@ -30,7 +30,50 @@ router.get('',async(req,res)=>{
     
 });
 
-// ! wo pagination
+//! Post :id details
+router.get('/post/:id',async(req,res)=>{
+
+    try{
+        let slug = req.params.id;
+
+        const data = await Post.findById({_id: slug});
+
+        const locals ={
+            title:data.title,
+            description:"lorem ipsum",
+        }
+        res.render('post',{locals,data,currentRoute:'/'});
+    }catch(error){
+        console.log(error);
+    }
+});
+
+//! Post - search function
+router.post('/search',async(req,res)=>{ 
+    try{
+        const locals ={
+            title:"Search Articles",
+            description:"lorem ipsum",
+        }
+        let searchTerm = req.body.searchTerm;
+        console.log(searchTerm)
+        const searchNoSpecialChar = searchTerm.replace(/[a-zA-Z0-9]/g, "");
+
+        const data = await Post.find({
+            $or:[
+                {title:{$regex: new RegExp(searchNoSpecialChar, 'i')}},
+                {body:{$regex: new RegExp(searchNoSpecialChar, 'i')}}
+            
+            ]
+        });
+        res.render('search',{locals,data,currentRoute: '/'});
+    }catch(error){
+        console.log(error);
+    }
+
+});
+
+// ? wo pagination
 // router.get('',async(req,res)=>{
 //     const locals ={
 //         title:"nodejs blog",
@@ -43,13 +86,12 @@ router.get('',async(req,res)=>{
 //         console.log(error);
 //     }
 
-//     res.render('index',{locals});
 // });
 
 
 
 router.get('/about',(req,res)=>{
-    res.render('about');
+    res.render('about',{currentRoute:'/about'});
 });
 
 // Function to insert post data if it doesn't exist
